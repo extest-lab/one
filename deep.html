@@ -261,6 +261,7 @@
             height: 100%;
             background: #0f172a;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -279,6 +280,14 @@
             border-top: 5px solid #00c6ff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .loader-text {
+            color: #a0aec0;
+            font-size: 1.2rem;
+            text-align: center;
+            max-width: 300px;
         }
         
         @keyframes spin {
@@ -297,13 +306,34 @@
             font-family: monospace;
             z-index: 100;
             display: none;
+            transition: opacity 0.3s;
+        }
+        
+        .fallback-message {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            background: #ff4d4d;
+            color: white;
+            text-align: center;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
     <!-- 加载指示器 -->
-    <div class="loader">
+    <div class="loader" id="loader">
         <div class="loader-spinner"></div>
+        <div class="loader-text">加载粒子系统中...</div>
+    </div>
+    
+    <!-- 回退消息 -->
+    <div class="fallback-message" id="fallback-message">
+        <p>无法加载粒子系统。请检查网络连接或刷新页面。</p>
+        <p>作为替代方案，您可以<a href="https://vincentgarreau.com/particles.js/#bubble" style="color: #fff; text-decoration: underline;">访问原始示例</a>。</p>
     </div>
     
     <!-- 状态指示器 -->
@@ -383,100 +413,121 @@
         // 全局变量存储粒子实例
         let particlesInstance;
         
-        // 修复：确保在文档加载完成后执行
-        document.addEventListener('DOMContentLoaded', function() {
-            // 初始化particles.js
-            particlesJS('particles-js', {
-                "particles": {
-                    "number": {
-                        "value": 160,
-                        "density": {
-                            "enable": true,
-                            "value_area": 800
-                        }
-                    },
-                    "color": {
-                        "value": "#ffffff"
-                    },
-                    "shape": {
-                        "type": "circle",
-                        "stroke": {
-                            "width": 0,
-                            "color": "#000000"
-                        }
-                    },
-                    "opacity": {
-                        "value": 1,
-                        "random": true,
-                        "anim": {
+        // 修复加载问题
+        function initParticles() {
+            // 检查particlesJS是否可用
+            if (typeof particlesJS !== 'function') {
+                showStatus('错误：无法加载particles.js库', 'error');
+                document.getElementById('fallback-message').style.display = 'block';
+                document.getElementById('loader').classList.add('hidden');
+                return;
+            }
+            
+            try {
+                // 初始化particles.js
+                particlesJS('particles-js', {
+                    "particles": {
+                        "number": {
+                            "value": 160,
+                            "density": {
+                                "enable": true,
+                                "value_area": 800
+                            }
+                        },
+                        "color": {
+                            "value": "#ffffff"
+                        },
+                        "shape": {
+                            "type": "circle",
+                            "stroke": {
+                                "width": 0,
+                                "color": "#000000"
+                            }
+                        },
+                        "opacity": {
+                            "value": 1,
+                            "random": true,
+                            "anim": {
+                                "enable": true,
+                                "speed": 1,
+                                "opacity_min": 0,
+                                "sync": false
+                            }
+                        },
+                        "size": {
+                            "value": 3,
+                            "random": true,
+                            "anim": {
+                                "enable": false,
+                                "speed": 4,
+                                "size_min": 0.3,
+                                "sync": false
+                            }
+                        },
+                        "line_linked": {
+                            "enable": false
+                        },
+                        "move": {
                             "enable": true,
                             "speed": 1,
-                            "opacity_min": 0,
-                            "sync": false
+                            "direction": "none",
+                            "random": true,
+                            "straight": false,
+                            "out_mode": "out",
+                            "bounce": false
                         }
                     },
-                    "size": {
-                        "value": 3,
-                        "random": true,
-                        "anim": {
-                            "enable": false,
-                            "speed": 4,
-                            "size_min": 0.3,
-                            "sync": false
+                    "interactivity": {
+                        "detect_on": "canvas",
+                        "events": {
+                            "onhover": {
+                                "enable": true,
+                                "mode": "bubble"
+                            },
+                            "onclick": {
+                                "enable": true,
+                                "mode": "repulse"
+                            },
+                            "resize": true
+                        },
+                        "modes": {
+                            "bubble": {
+                                "distance": 250,
+                                "size": 0,
+                                "duration": 2,
+                                "opacity": 0,
+                                "speed": 3
+                            },
+                            "repulse": {
+                                "distance": 400,
+                                "duration": 0.4
+                            }
                         }
                     },
-                    "line_linked": {
-                        "enable": false
-                    },
-                    "move": {
-                        "enable": true,
-                        "speed": 1,
-                        "direction": "none",
-                        "random": true,
-                        "straight": false,
-                        "out_mode": "out",
-                        "bounce": false
-                    }
-                },
-                "interactivity": {
-                    "detect_on": "canvas",
-                    "events": {
-                        "onhover": {
-                            "enable": true,
-                            "mode": "bubble"
-                        },
-                        "onclick": {
-                            "enable": true,
-                            "mode": "repulse"
-                        },
-                        "resize": true
-                    },
-                    "modes": {
-                        "bubble": {
-                            "distance": 250,
-                            "size": 0,
-                            "duration": 2,
-                            "opacity": 0,
-                            "speed": 3
-                        },
-                        "repulse": {
-                            "distance": 400,
-                            "duration": 0.4
-                        }
-                    }
-                },
-                "retina_detect": true
-            }, function() {
-                // 存储粒子实例
-                particlesInstance = window.pJSDom[0].pJS;
-                
-                // 隐藏加载指示器
-                document.querySelector('.loader').classList.add('hidden');
-                
-                // 显示状态信息
-                showStatus('粒子系统已初始化完成！');
-            });
-            
+                    "retina_detect": true
+                }, function() {
+                    // 存储粒子实例
+                    particlesInstance = window.pJSDom[0].pJS;
+                    
+                    // 隐藏加载指示器
+                    document.getElementById('loader').classList.add('hidden');
+                    
+                    // 显示状态信息
+                    showStatus('粒子系统已成功加载！');
+                    
+                    // 初始化控制面板
+                    initControls();
+                });
+            } catch (e) {
+                console.error('初始化错误:', e);
+                showStatus('初始化粒子系统时出错', 'error');
+                document.getElementById('fallback-message').style.display = 'block';
+                document.getElementById('loader').classList.add('hidden');
+            }
+        }
+        
+        // 初始化控制面板
+        function initControls() {
             // 控制面板交互
             const countSlider = document.getElementById('particle-count');
             const sizeSlider = document.getElementById('particle-size');
@@ -521,31 +572,39 @@
                 distanceValue.textContent = distanceSlider.value;
             });
             
-            // 更新粒子配置（修复后的函数）
+            // 更新粒子配置
             function updateParticles() {
-                if (!particlesInstance) return;
+                if (!particlesInstance) {
+                    showStatus('粒子实例未初始化', 'error');
+                    return;
+                }
                 
-                const count = parseInt(countSlider.value);
-                const size = parseInt(sizeSlider.value);
-                const speed = parseFloat(speedSlider.value);
-                const bubbleSize = parseInt(bubbleSlider.value);
-                const opacity = parseFloat(opacitySlider.value);
-                const distance = parseInt(distanceSlider.value);
-                
-                // 更新粒子配置
-                particlesInstance.particles.number.value = count;
-                particlesInstance.particles.size.value = size;
-                particlesInstance.particles.move.speed = speed;
-                particlesInstance.particles.opacity.value = opacity;
-                particlesInstance.interactivity.modes.bubble.size = bubbleSize;
-                particlesInstance.interactivity.modes.bubble.distance = distance;
-                
-                // 刷新粒子
-                particlesInstance.fn.particlesRefresh();
-                showStatus('粒子设置已更新！');
+                try {
+                    const count = parseInt(countSlider.value);
+                    const size = parseInt(sizeSlider.value);
+                    const speed = parseFloat(speedSlider.value);
+                    const bubbleSize = parseInt(bubbleSlider.value);
+                    const opacity = parseFloat(opacitySlider.value);
+                    const distance = parseInt(distanceSlider.value);
+                    
+                    // 更新粒子配置
+                    particlesInstance.particles.number.value = count;
+                    particlesInstance.particles.size.value = size;
+                    particlesInstance.particles.move.speed = speed;
+                    particlesInstance.particles.opacity.value = opacity;
+                    particlesInstance.interactivity.modes.bubble.size = bubbleSize;
+                    particlesInstance.interactivity.modes.bubble.distance = distance;
+                    
+                    // 刷新粒子
+                    particlesInstance.fn.particlesRefresh();
+                    showStatus('粒子设置已更新');
+                } catch (e) {
+                    console.error('更新错误:', e);
+                    showStatus('更新粒子设置时出错', 'error');
+                }
             }
             
-            // 添加事件监听器（修复为实时更新）
+            // 添加事件监听器
             countSlider.addEventListener('input', updateParticles);
             sizeSlider.addEventListener('input', updateParticles);
             speedSlider.addEventListener('input', updateParticles);
@@ -620,23 +679,54 @@
                     rgba(${Math.floor(22 + y * 20)}, ${Math.floor(33 + x * 20)}, ${Math.floor(62 + y * 20)}, 1))
                 `;
             });
+        }
+        
+        // 显示状态信息
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.style.display = 'block';
             
-            // 显示状态信息
-            function showStatus(message) {
-                const status = document.getElementById('status');
-                status.textContent = message;
-                status.style.display = 'block';
-                
+            // 根据类型设置颜色
+            if (type === 'error') {
+                status.style.backgroundColor = 'rgba(255, 77, 77, 0.8)';
+                status.style.color = '#fff';
+            } else {
+                status.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                status.style.color = '#00ffaa';
+            }
+            
+            setTimeout(() => {
+                status.style.opacity = '1';
+            }, 10);
+            
+            setTimeout(() => {
+                status.style.opacity = '0';
                 setTimeout(() => {
-                    status.style.opacity = '1';
-                }, 10);
-                
-                setTimeout(() => {
-                    status.style.opacity = '0';
-                    setTimeout(() => {
-                        status.style.display = 'none';
-                    }, 500);
-                }, 3000);
+                    status.style.display = 'none';
+                }, 500);
+            }, 3000);
+        }
+        
+        // 添加超时检测
+        const loadTimeout = setTimeout(() => {
+            if (!particlesInstance) {
+                showStatus('加载粒子系统超时', 'error');
+                document.getElementById('fallback-message').style.display = 'block';
+                document.getElementById('loader').classList.add('hidden');
+            }
+        }, 5000);
+        
+        // 在库加载后初始化
+        window.addEventListener('load', function() {
+            // 如果particlesJS已加载，则初始化
+            if (typeof particlesJS === 'function') {
+                initParticles();
+            } else {
+                // 如果未加载，显示错误
+                showStatus('错误：无法加载particles.js库', 'error');
+                document.getElementById('fallback-message').style.display = 'block';
+                document.getElementById('loader').classList.add('hidden');
             }
         });
     </script>
