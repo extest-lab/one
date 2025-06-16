@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particles.js 气泡效果演示</title>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            height: 100vh;
+        }
+        
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: rgba(10, 25, 47, 0.7);
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(0, 114, 255, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 25px;
+            color: #a0aec0;
+            line-height: 1.6;
+        }
+        
+        .content {
+            display: flex;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(10, 25, 47, 0.85);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .panel h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #00c6ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .features {
+            list-style-type: none;
+        }
+        
+        .features li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .features li:before {
+            content: "•";
+            color: #00c6ff;
+            font-size: 1.5rem;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a0aec0;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #00c6ff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 0;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #a0aec0;
+            font-size: 0.9rem;
+            background: rgba(10, 25, 47, 0.7);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .highlight {
+            color: #00c6ff;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Particles.js 气泡效果</h1>
+            <p class="subtitle">交互式粒子系统，基于Vincent Garreau的particles.js库实现。鼠标悬停产生气泡，点击产生排斥效果。</p>
+        </header>
+        
+        <div class="content">
+            <div class="panel">
+                <h2>气泡效果特点</h2>
+                <ul class="features">
+                    <li>160个白色圆形粒子在深色背景上浮动</li>
+                    <li>鼠标悬停产生气泡效果（粒子变大变淡）</li>
+                    <li>点击产生排斥效果（粒子向四周扩散）</li>
+                    <li>粒子随机运动，模拟自然浮动</li>
+                    <li>支持视网膜显示优化</li>
+                    <li>完全响应式设计，适配各种屏幕</li>
+                    <li>背景色渐变，增强视觉效果</li>
+                </ul>
+            </div>
+            
+            <div class="panel">
+                <h2>实时控制</h2>
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="particle-count">粒子数量: <span id="count-value">160</span></label>
+                        <input type="range" id="particle-count" min="20" max="500" value="160">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="particle-size">粒子大小: <span id="size-value">3</span></label>
+                        <input type="range" id="particle-size" min="1" max="20" value="3">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="move-speed">移动速度: <span id="speed-value">1</span></label>
+                        <input type="range" id="move-speed" min="0.1" max="5" step="0.1" value="1">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="bubble-size">气泡大小: <span id="bubble-value">0</span></label>
+                        <input type="range" id="bubble-size" min="0" max="20" value="0">
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button id="reset-btn">重置设置</button>
+                    <button id="random-btn">随机效果</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>基于 <span class="highlight">particles.js v2.0.0</span> 创建 | 设计灵感来自 Vincent Garreau 的 <span class="highlight">Bubble 示例</span></p>
+            <p>移动鼠标与粒子交互 | 点击屏幕产生排斥效果</p>
+        </footer>
+    </div>
+
+    <script>
+        // 初始化particles.js
+        particlesJS('particles-js', {
+            "particles": {
+                "number": {
+                    "value": 160,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#ffffff"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    }
+                },
+                "opacity": {
+                    "value": 1,
+                    "random": true,
+                    "anim": {
+                        "enable": true,
+                        "speed": 1,
+                        "opacity_min": 0,
+                        "sync": false
+                    }
+                },
+                "size": {
+                    "value": 3,
+                    "random": true,
+                    "anim": {
+                        "enable": false,
+                        "speed": 4,
+                        "size_min": 0.3,
+                        "sync": false
+                    }
+                },
+                "line_linked": {
+                    "enable": false
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 1,
+                    "direction": "none",
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "bubble"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "repulse"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "bubble": {
+                        "distance": 250,
+                        "size": 0,
+                        "duration": 2,
+                        "opacity": 0,
+                        "speed": 3
+                    },
+                    "repulse": {
+                        "distance": 400,
+                        "duration": 0.4
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+        
+        // 获取粒子容器
+        const particlesContainer = document.getElementById('particles-js');
+        
+        // 控制面板交互
+        const countSlider = document.getElementById('particle-count');
+        const sizeSlider = document.getElementById('particle-size');
+        const speedSlider = document.getElementById('move-speed');
+        const bubbleSlider = document.getElementById('bubble-size');
+        const countValue = document.getElementById('count-value');
+        const sizeValue = document.getElementById('size-value');
+        const speedValue = document.getElementById('speed-value');
+        const bubbleValue = document.getElementById('bubble-value');
+        const resetBtn = document.getElementById('reset-btn');
+        const randomBtn = document.getElementById('random-btn');
+        
+        // 更新显示的值
+        countSlider.addEventListener('input', () => {
+            countValue.textContent = countSlider.value;
+        });
+        
+        sizeSlider.addEventListener('input', () => {
+            sizeValue.textContent = sizeSlider.value;
+        });
+        
+        speedSlider.addEventListener('input', () => {
+            speedValue.textContent = speedSlider.value;
+        });
+        
+        bubbleSlider.addEventListener('input', () => {
+            bubbleValue.textContent = bubbleSlider.value;
+        });
+        
+        // 更新粒子配置
+        function updateParticles() {
+            const count = parseInt(countSlider.value);
+            const size = parseInt(sizeSlider.value);
+            const speed = parseFloat(speedSlider.value);
+            const bubbleSize = parseInt(bubbleSlider.value);
+            
+            // 更新粒子配置
+            pJS.particles.number.value = count;
+            pJS.particles.size.value = size;
+            pJS.particles.move.speed = speed;
+            pJS.interactivity.modes.bubble.size = bubbleSize;
+            
+            // 刷新粒子
+            pJS.fn.particlesRefresh();
+        }
+        
+        // 添加事件监听器
+        countSlider.addEventListener('change', updateParticles);
+        sizeSlider.addEventListener('change', updateParticles);
+        speedSlider.addEventListener('change', updateParticles);
+        bubbleSlider.addEventListener('change', updateParticles);
+        
+        // 重置按钮
+        resetBtn.addEventListener('click', () => {
+            countSlider.value = 160;
+            sizeSlider.value = 3;
+            speedSlider.value = 1;
+            bubbleSlider.value = 0;
+            
+            countValue.textContent = "160";
+            sizeValue.textContent = "3";
+            speedValue.textContent = "1";
+            bubbleValue.textContent = "0";
+            
+            updateParticles();
+        });
+        
+        // 随机效果按钮
+        randomBtn.addEventListener('click', () => {
+            countSlider.value = Math.floor(Math.random() * 300) + 50;
+            sizeSlider.value = Math.floor(Math.random() * 10) + 2;
+            speedSlider.value = (Math.random() * 4 + 0.5).toFixed(1);
+            bubbleSlider.value = Math.floor(Math.random() * 15) + 5;
+            
+            countValue.textContent = countSlider.value;
+            sizeValue.textContent = sizeSlider.value;
+            speedValue.textContent = speedSlider.value;
+            bubbleValue.textContent = bubbleSlider.value;
+            
+            updateParticles();
+        });
+        
+        // 添加鼠标移动效果
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            // 轻微改变背景渐变
+            document.body.style.background = `
+                linear-gradient(135deg, 
+                rgba(${Math.floor(26 + x * 20)}, ${Math.floor(26 + y * 20)}, ${Math.floor(46 + x * 20)}, 1),
+                rgba(${Math.floor(22 + y * 20)}, ${Math.floor(33 + x * 20)}, ${Math.floor(62 + y * 20)}, 1))
+            `;
+        });
+    </script>
+</body>
+</html>
