@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Particles.js 气泡效果演示</title>
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -18,13 +18,14 @@
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             color: #fff;
             height: 100vh;
+            position: relative;
         }
         
         #particles-js {
             position: absolute;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: 0;
         }
         
         .container {
@@ -35,6 +36,8 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            position: relative;
+            z-index: 10;
         }
         
         header {
@@ -46,6 +49,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 1s ease-out;
         }
         
         h1 {
@@ -81,6 +85,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.8s ease-out;
         }
         
         .panel h2 {
@@ -102,6 +107,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: transform 0.3s;
+        }
+        
+        .features li:hover {
+            transform: translateX(10px);
         }
         
         .features li:before {
@@ -142,6 +152,12 @@
             background: #00c6ff;
             border-radius: 50%;
             cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #00ffd5;
         }
         
         .buttons {
@@ -160,6 +176,23 @@
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: 0.5s;
+        }
+        
+        button:hover:before {
+            left: 100%;
         }
         
         button:hover {
@@ -181,6 +214,7 @@
             margin-bottom: 20px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 1.5s ease-out;
         }
         
         .highlight {
@@ -188,6 +222,18 @@
             font-weight: bold;
         }
         
+        /* 添加动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 响应式设计 */
         @media (max-width: 768px) {
             .content {
                 flex-direction: column;
@@ -200,10 +246,69 @@
             .controls {
                 grid-template-columns: 1fr;
             }
+            
+            .panel {
+                min-width: 100%;
+            }
+        }
+        
+        /* 加载指示器 */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loader-spinner {
+            width: 80px;
+            height: 80px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid #00c6ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #00ffaa;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            z-index: 100;
+            display: none;
         }
     </style>
 </head>
 <body>
+    <!-- 加载指示器 -->
+    <div class="loader">
+        <div class="loader-spinner"></div>
+    </div>
+    
+    <!-- 状态指示器 -->
+    <div class="status" id="status"></div>
+    
     <div id="particles-js"></div>
     
     <div class="container">
@@ -248,11 +353,22 @@
                         <label for="bubble-size">气泡大小: <span id="bubble-value">0</span></label>
                         <input type="range" id="bubble-size" min="0" max="20" value="0">
                     </div>
+                    
+                    <div class="control-group">
+                        <label for="particle-opacity">粒子透明度: <span id="opacity-value">1.0</span></label>
+                        <input type="range" id="particle-opacity" min="0.1" max="1" step="0.1" value="1">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="bubble-distance">气泡距离: <span id="distance-value">250</span></label>
+                        <input type="range" id="bubble-distance" min="100" max="500" value="250">
+                    </div>
                 </div>
                 
                 <div class="buttons">
                     <button id="reset-btn">重置设置</button>
                     <button id="random-btn">随机效果</button>
+                    <button id="pause-btn">暂停/继续</button>
                 </div>
             </div>
         </div>
@@ -264,185 +380,264 @@
     </div>
 
     <script>
-        // 初始化particles.js
-        particlesJS('particles-js', {
-            "particles": {
-                "number": {
-                    "value": 160,
-                    "density": {
-                        "enable": true,
-                        "value_area": 800
-                    }
-                },
-                "color": {
-                    "value": "#ffffff"
-                },
-                "shape": {
-                    "type": "circle",
-                    "stroke": {
-                        "width": 0,
-                        "color": "#000000"
-                    }
-                },
-                "opacity": {
-                    "value": 1,
-                    "random": true,
-                    "anim": {
+        // 全局变量存储粒子实例
+        let particlesInstance;
+        
+        // 修复：确保在文档加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化particles.js
+            particlesJS('particles-js', {
+                "particles": {
+                    "number": {
+                        "value": 160,
+                        "density": {
+                            "enable": true,
+                            "value_area": 800
+                        }
+                    },
+                    "color": {
+                        "value": "#ffffff"
+                    },
+                    "shape": {
+                        "type": "circle",
+                        "stroke": {
+                            "width": 0,
+                            "color": "#000000"
+                        }
+                    },
+                    "opacity": {
+                        "value": 1,
+                        "random": true,
+                        "anim": {
+                            "enable": true,
+                            "speed": 1,
+                            "opacity_min": 0,
+                            "sync": false
+                        }
+                    },
+                    "size": {
+                        "value": 3,
+                        "random": true,
+                        "anim": {
+                            "enable": false,
+                            "speed": 4,
+                            "size_min": 0.3,
+                            "sync": false
+                        }
+                    },
+                    "line_linked": {
+                        "enable": false
+                    },
+                    "move": {
                         "enable": true,
                         "speed": 1,
-                        "opacity_min": 0,
-                        "sync": false
+                        "direction": "none",
+                        "random": true,
+                        "straight": false,
+                        "out_mode": "out",
+                        "bounce": false
                     }
                 },
-                "size": {
-                    "value": 3,
-                    "random": true,
-                    "anim": {
-                        "enable": false,
-                        "speed": 4,
-                        "size_min": 0.3,
-                        "sync": false
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": {
+                            "enable": true,
+                            "mode": "bubble"
+                        },
+                        "onclick": {
+                            "enable": true,
+                            "mode": "repulse"
+                        },
+                        "resize": true
+                    },
+                    "modes": {
+                        "bubble": {
+                            "distance": 250,
+                            "size": 0,
+                            "duration": 2,
+                            "opacity": 0,
+                            "speed": 3
+                        },
+                        "repulse": {
+                            "distance": 400,
+                            "duration": 0.4
+                        }
                     }
                 },
-                "line_linked": {
-                    "enable": false
-                },
-                "move": {
-                    "enable": true,
-                    "speed": 1,
-                    "direction": "none",
-                    "random": true,
-                    "straight": false,
-                    "out_mode": "out",
-                    "bounce": false
+                "retina_detect": true
+            }, function() {
+                // 存储粒子实例
+                particlesInstance = window.pJSDom[0].pJS;
+                
+                // 隐藏加载指示器
+                document.querySelector('.loader').classList.add('hidden');
+                
+                // 显示状态信息
+                showStatus('粒子系统已初始化完成！');
+            });
+            
+            // 控制面板交互
+            const countSlider = document.getElementById('particle-count');
+            const sizeSlider = document.getElementById('particle-size');
+            const speedSlider = document.getElementById('move-speed');
+            const bubbleSlider = document.getElementById('bubble-size');
+            const opacitySlider = document.getElementById('particle-opacity');
+            const distanceSlider = document.getElementById('bubble-distance');
+            
+            const countValue = document.getElementById('count-value');
+            const sizeValue = document.getElementById('size-value');
+            const speedValue = document.getElementById('speed-value');
+            const bubbleValue = document.getElementById('bubble-value');
+            const opacityValue = document.getElementById('opacity-value');
+            const distanceValue = document.getElementById('distance-value');
+            
+            const resetBtn = document.getElementById('reset-btn');
+            const randomBtn = document.getElementById('random-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            
+            // 更新显示的值
+            countSlider.addEventListener('input', () => {
+                countValue.textContent = countSlider.value;
+            });
+            
+            sizeSlider.addEventListener('input', () => {
+                sizeValue.textContent = sizeSlider.value;
+            });
+            
+            speedSlider.addEventListener('input', () => {
+                speedValue.textContent = speedSlider.value;
+            });
+            
+            bubbleSlider.addEventListener('input', () => {
+                bubbleValue.textContent = bubbleSlider.value;
+            });
+            
+            opacitySlider.addEventListener('input', () => {
+                opacityValue.textContent = opacitySlider.value;
+            });
+            
+            distanceSlider.addEventListener('input', () => {
+                distanceValue.textContent = distanceSlider.value;
+            });
+            
+            // 更新粒子配置（修复后的函数）
+            function updateParticles() {
+                if (!particlesInstance) return;
+                
+                const count = parseInt(countSlider.value);
+                const size = parseInt(sizeSlider.value);
+                const speed = parseFloat(speedSlider.value);
+                const bubbleSize = parseInt(bubbleSlider.value);
+                const opacity = parseFloat(opacitySlider.value);
+                const distance = parseInt(distanceSlider.value);
+                
+                // 更新粒子配置
+                particlesInstance.particles.number.value = count;
+                particlesInstance.particles.size.value = size;
+                particlesInstance.particles.move.speed = speed;
+                particlesInstance.particles.opacity.value = opacity;
+                particlesInstance.interactivity.modes.bubble.size = bubbleSize;
+                particlesInstance.interactivity.modes.bubble.distance = distance;
+                
+                // 刷新粒子
+                particlesInstance.fn.particlesRefresh();
+                showStatus('粒子设置已更新！');
+            }
+            
+            // 添加事件监听器（修复为实时更新）
+            countSlider.addEventListener('input', updateParticles);
+            sizeSlider.addEventListener('input', updateParticles);
+            speedSlider.addEventListener('input', updateParticles);
+            bubbleSlider.addEventListener('input', updateParticles);
+            opacitySlider.addEventListener('input', updateParticles);
+            distanceSlider.addEventListener('input', updateParticles);
+            
+            // 重置按钮
+            resetBtn.addEventListener('click', () => {
+                countSlider.value = 160;
+                sizeSlider.value = 3;
+                speedSlider.value = 1;
+                bubbleSlider.value = 0;
+                opacitySlider.value = 1;
+                distanceSlider.value = 250;
+                
+                countValue.textContent = "160";
+                sizeValue.textContent = "3";
+                speedValue.textContent = "1";
+                bubbleValue.textContent = "0";
+                opacityValue.textContent = "1.0";
+                distanceValue.textContent = "250";
+                
+                updateParticles();
+                showStatus('设置已重置为默认值');
+            });
+            
+            // 随机效果按钮
+            randomBtn.addEventListener('click', () => {
+                countSlider.value = Math.floor(Math.random() * 300) + 50;
+                sizeSlider.value = Math.floor(Math.random() * 10) + 2;
+                speedSlider.value = (Math.random() * 4 + 0.5).toFixed(1);
+                bubbleSlider.value = Math.floor(Math.random() * 15) + 5;
+                opacitySlider.value = (Math.random() * 0.9 + 0.1).toFixed(1);
+                distanceSlider.value = Math.floor(Math.random() * 300) + 100;
+                
+                countValue.textContent = countSlider.value;
+                sizeValue.textContent = sizeSlider.value;
+                speedValue.textContent = speedSlider.value;
+                bubbleValue.textContent = bubbleSlider.value;
+                opacityValue.textContent = opacitySlider.value;
+                distanceValue.textContent = distanceSlider.value;
+                
+                updateParticles();
+                showStatus('已应用随机粒子设置');
+            });
+            
+            // 暂停/继续按钮
+            pauseBtn.addEventListener('click', () => {
+                if (!particlesInstance) return;
+                
+                particlesInstance.particles.move.enable = !particlesInstance.particles.move.enable;
+                
+                if (particlesInstance.particles.move.enable) {
+                    showStatus('粒子运动已继续');
+                    pauseBtn.textContent = "暂停运动";
+                } else {
+                    showStatus('粒子运动已暂停');
+                    pauseBtn.textContent = "继续运动";
                 }
-            },
-            "interactivity": {
-                "detect_on": "canvas",
-                "events": {
-                    "onhover": {
-                        "enable": true,
-                        "mode": "bubble"
-                    },
-                    "onclick": {
-                        "enable": true,
-                        "mode": "repulse"
-                    },
-                    "resize": true
-                },
-                "modes": {
-                    "bubble": {
-                        "distance": 250,
-                        "size": 0,
-                        "duration": 2,
-                        "opacity": 0,
-                        "speed": 3
-                    },
-                    "repulse": {
-                        "distance": 400,
-                        "duration": 0.4
-                    }
-                }
-            },
-            "retina_detect": true
-        });
-        
-        // 获取粒子容器
-        const particlesContainer = document.getElementById('particles-js');
-        
-        // 控制面板交互
-        const countSlider = document.getElementById('particle-count');
-        const sizeSlider = document.getElementById('particle-size');
-        const speedSlider = document.getElementById('move-speed');
-        const bubbleSlider = document.getElementById('bubble-size');
-        const countValue = document.getElementById('count-value');
-        const sizeValue = document.getElementById('size-value');
-        const speedValue = document.getElementById('speed-value');
-        const bubbleValue = document.getElementById('bubble-value');
-        const resetBtn = document.getElementById('reset-btn');
-        const randomBtn = document.getElementById('random-btn');
-        
-        // 更新显示的值
-        countSlider.addEventListener('input', () => {
-            countValue.textContent = countSlider.value;
-        });
-        
-        sizeSlider.addEventListener('input', () => {
-            sizeValue.textContent = sizeSlider.value;
-        });
-        
-        speedSlider.addEventListener('input', () => {
-            speedValue.textContent = speedSlider.value;
-        });
-        
-        bubbleSlider.addEventListener('input', () => {
-            bubbleValue.textContent = bubbleSlider.value;
-        });
-        
-        // 更新粒子配置
-        function updateParticles() {
-            const count = parseInt(countSlider.value);
-            const size = parseInt(sizeSlider.value);
-            const speed = parseFloat(speedSlider.value);
-            const bubbleSize = parseInt(bubbleSlider.value);
+            });
             
-            // 更新粒子配置
-            pJS.particles.number.value = count;
-            pJS.particles.size.value = size;
-            pJS.particles.move.speed = speed;
-            pJS.interactivity.modes.bubble.size = bubbleSize;
+            // 添加鼠标移动效果
+            document.addEventListener('mousemove', (e) => {
+                const x = e.clientX / window.innerWidth;
+                const y = e.clientY / window.innerHeight;
+                
+                // 轻微改变背景渐变
+                document.body.style.background = `
+                    linear-gradient(135deg, 
+                    rgba(${Math.floor(26 + x * 20)}, ${Math.floor(26 + y * 20)}, ${Math.floor(46 + x * 20)}, 1),
+                    rgba(${Math.floor(22 + y * 20)}, ${Math.floor(33 + x * 20)}, ${Math.floor(62 + y * 20)}, 1))
+                `;
+            });
             
-            // 刷新粒子
-            pJS.fn.particlesRefresh();
-        }
-        
-        // 添加事件监听器
-        countSlider.addEventListener('change', updateParticles);
-        sizeSlider.addEventListener('change', updateParticles);
-        speedSlider.addEventListener('change', updateParticles);
-        bubbleSlider.addEventListener('change', updateParticles);
-        
-        // 重置按钮
-        resetBtn.addEventListener('click', () => {
-            countSlider.value = 160;
-            sizeSlider.value = 3;
-            speedSlider.value = 1;
-            bubbleSlider.value = 0;
-            
-            countValue.textContent = "160";
-            sizeValue.textContent = "3";
-            speedValue.textContent = "1";
-            bubbleValue.textContent = "0";
-            
-            updateParticles();
-        });
-        
-        // 随机效果按钮
-        randomBtn.addEventListener('click', () => {
-            countSlider.value = Math.floor(Math.random() * 300) + 50;
-            sizeSlider.value = Math.floor(Math.random() * 10) + 2;
-            speedSlider.value = (Math.random() * 4 + 0.5).toFixed(1);
-            bubbleSlider.value = Math.floor(Math.random() * 15) + 5;
-            
-            countValue.textContent = countSlider.value;
-            sizeValue.textContent = sizeSlider.value;
-            speedValue.textContent = speedSlider.value;
-            bubbleValue.textContent = bubbleSlider.value;
-            
-            updateParticles();
-        });
-        
-        // 添加鼠标移动效果
-        document.addEventListener('mousemove', (e) => {
-            const x = e.clientX / window.innerWidth;
-            const y = e.clientY / window.innerHeight;
-            
-            // 轻微改变背景渐变
-            document.body.style.background = `
-                linear-gradient(135deg, 
-                rgba(${Math.floor(26 + x * 20)}, ${Math.floor(26 + y * 20)}, ${Math.floor(46 + x * 20)}, 1),
-                rgba(${Math.floor(22 + y * 20)}, ${Math.floor(33 + x * 20)}, ${Math.floor(62 + y * 20)}, 1))
-            `;
+            // 显示状态信息
+            function showStatus(message) {
+                const status = document.getElementById('status');
+                status.textContent = message;
+                status.style.display = 'block';
+                
+                setTimeout(() => {
+                    status.style.opacity = '1';
+                }, 10);
+                
+                setTimeout(() => {
+                    status.style.opacity = '0';
+                    setTimeout(() => {
+                        status.style.display = 'none';
+                    }, 500);
+                }, 3000);
+            }
         });
     </script>
 </body>
