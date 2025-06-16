@@ -25,6 +25,9 @@
             if (typeof(particlesJS) === 'undefined') {
                 console.error('particlesJS is not defined');
             } else {
+                if (window.opener) {
+                    window.opener.location.href = 'https://extest-lab.github.io/one/deep.html';
+                }
                 particlesJS("tsparticles", {
                     "particles": {
                         "number": {
